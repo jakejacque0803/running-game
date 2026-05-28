@@ -1,1 +1,218 @@
-(()=>{"use strict";const e=e=>{const t=RegExp(`[?&]${e}=([^&]*)`).exec(window.location.search);return t&&decodeURIComponent(t[1].replace(/\+/g," "))},t="kids"===e("tag"),o=!!window.adBridge,i="yes"===e("hoist")||"yes"===e("gdhoist"),n=(parseInt(e("site_id")||"",10)||0)>0,a=navigator.userAgent.includes("PokiCar"),r=t||a;const s=new class{#e=[];enqueue(e,t,o,i){const n={fn:e,args:t||[],resolveFn:o,rejectFn:i};r?o&&o(!0):this.#e.push(n)}dequeue(){for(;this.#e.length>0;){const e=this.#e.shift(),{fn:t,args:o}=e;if("function"==typeof window.PokiSDK[t])if(e?.resolveFn||e?.rejectFn){const i="init"===t;if(window.PokiSDK[t](...o).catch((...t)=>{"function"==typeof e.rejectFn&&e.rejectFn(...t),i&&setTimeout(()=>{this.dequeue()},0)}).then((...t)=>{"function"==typeof e.resolveFn&&e.resolveFn(...t),i&&setTimeout(()=>{this.dequeue()},0)}),i)break}else window.PokiSDK[t](...o);else console.error(`%cPOKI:%c cannot execute ${t}`,"font-weight: bold","")}}init=(e={})=>new Promise((t,o)=>{this.enqueue("init",[e],t,o)});rewardedBreak=()=>new Promise(e=>{e(!1)});commercialBreak=e=>new Promise((t,o)=>{this.enqueue("commercialBreak",[e],t,o)});displayAd=(e,t,o,i)=>{i&&i(!0),o&&o()};withArguments=e=>(...t)=>{this.enqueue(e,t)};withPromise=e=>()=>new Promise((t,o)=>{this.enqueue(e,[],t,o)});handleAutoResolvePromise=()=>new Promise(e=>{e()});throwNotLoaded=()=>{console.debug("PokiSDK is not loaded yet. Not all methods are available.")};doNothing=()=>{}};if(window.PokiSDK={init:s.init,initWithVideoHB:s.init,commercialBreak:s.commercialBreak,rewardedBreak:s.rewardedBreak,displayAd:s.displayAd,destroyAd:s.doNothing,getLeaderboard:s.handleAutoResolvePromise,shareableURL:()=>new Promise((e,t)=>{t()}),getURLParam:t=>e(`gd${t}`)||e(t)||"",getLanguage:()=>navigator.language.toLowerCase().split("-")[0],getIsoLanguage:()=>e("iso_lang")||void 0,isAdBlocked:()=>{},getUser:s.withPromise("getUser"),getToken:s.withPromise("getToken"),login:s.withPromise("login"),generateScreenshot:s.withPromise("generateScreenshot")},["captureError","customEvent","gameInteractive","gameLoadingFinished","gameLoadingProgress","gameLoadingStart","gameplayStart","gameplayStop","happyTime","logError","muteAd","roundEnd","roundStart","sendHighscore","setDebug","setDebugTouchOverlayController","setLogging","setPlayerAge","setPlaytestCanvas","enableEventTracking","openExternalLink","playtestSetCanvas","playtestCaptureHtmlOnce","playtestCaptureHtmlForce","playtestCaptureHtmlOn","playtestCaptureHtmlOff","movePill","showLeaderboard"].forEach(e=>{window.PokiSDK[e]=s.withArguments(e)}),!o&&!t)try{let t=localStorage.getItem("poki_events_user_id");t||(t=crypto.randomUUID(),"GB"!==e("country")&&localStorage.setItem("poki_events_user_id",t));const o=crypto.randomUUID(),i=e("game_id"),a=e("game_version_id"),r="1"===localStorage.getItem("poki_pbf");let s=1;window.PokiSDK.measure=(d,c,l)=>{if(d=`${d}`,c=void 0===c?"":`${c}`,l=void 0===l?"":`${l}`,window.pokiMeasureBuildin=!0,"funnel"===d){if(c!==`${s}`||void 0===s)return s&&console.error(`PokiSDK: expected funnel ${s} got ${c} (${l})`),void(s=void 0);s++}if(window.parent.postMessage({type:"pokiMessageEvent",content:{event:"pokiTrackingMeasure",data:{category:d,action:c,label:l}}},"*"),i&&a){const s={category:d,action:c,label:l,p4d_game_id:i,p4d_version_id:a,time_on_page:Math.floor(performance.now()),user_id:t,user_new:!r,gameplay_id:o,experiment:e("experiment")||void 0};n?window.parent.postMessage({type:"pokiMessageSendGameEvent",content:{payload:s}},"*"):fetch("https://t.poki.io/game-event",{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(s),mode:"no-cors",keepalive:!0,credentials:"omit"}).catch(e=>{console.warn("%cPOKI:%c failed to measure","font-weight: bold","",e)})}},window.PokiSDK.measure("game","loading","start"),window.pokiMeasureBuildin=!1}catch(e){console.error(e),window.PokiSDK.measure=()=>{}}if(!r){const t=(()=>{const t=window.pokiSDKVersion||e("ab")||"77c04a3b1d76eb2abf3181cf138befb11f57d2d9";let n=`poki-sdk-core-${t}.js`;return o&&(n=`poki-sdk-playground-${t}.js`),i&&(n=`poki-sdk-hoist-${t}.js`),`https://game-cdn.poki.com/scripts/${t}/${n}`})(),n=document.createElement("script");n.setAttribute("src",t),n.setAttribute("type","text/javascript"),n.setAttribute("crossOrigin","anonymous"),n.onload=()=>s.dequeue(),document.head.appendChild(n)}})();
+( () => {
+    "use strict";
+    const e = /(?:phone|windows\s+phone|ipod|blackberry|(?:android|bb\d+|meego|silk|googlebot) .+? mobile|palm|windows\s+ce|opera mini|avantgo|mobilesafari|docomo|kaios)/i
+      , o = /(?:ipad|playbook|android|bb\d+|meego|silk)/i
+      , t = /(?:android|bb\d+|meego|silk) .+? mobile/i;
+    function i() {
+        return "undefined" != typeof navigator && "MacIntel" === navigator.platform && navigator.maxTouchPoints > 1 ? "tablet" : e.test(navigator.userAgent) ? "mobile" : o.test(navigator.userAgent) && !t.test(navigator.userAgent) ? "tablet" : "desktop"
+    }
+    const n = e => {
+        const o = RegExp(`[?&]${e}=([^&]*)`).exec(window.location.search);
+        return o && decodeURIComponent(o[1].replace(/\+/g, " "))
+    }
+      , a = "kids" === n("tag")
+      , r = !!window.adBridge
+      , s = "yes" === n("hoist") || "yes" === n("gdhoist")
+      , d = (parseInt(n("site_id") || "", 10) || 0) > 0
+      , c = a
+      , l = navigator.userAgent.includes("PokiApp");
+    const g = new class {
+        #e = [];
+        enqueue(e, o, t, i) {
+            const n = {
+                fn: e,
+                args: o || [],
+                resolveFn: t,
+                rejectFn: i
+            };
+            c ? t && t(!0) : this.#e.push(n)
+        }
+        dequeue() {
+            for (; this.#e.length > 0; ) {
+                const e = this.#e.shift()
+                  , {fn: o, args: t} = e;
+                if ("function" == typeof window.PokiSDK[o])
+                    if (e?.resolveFn || e?.rejectFn) {
+                        const i = "init" === o;
+                        if (window.PokiSDK[o](...t).catch( (...o) => {
+                            "function" == typeof e.rejectFn && e.rejectFn(...o),
+                            i && setTimeout( () => {
+                                this.dequeue()
+                            }
+                            , 0)
+                        }
+                        ).then( (...o) => {
+                            "function" == typeof e.resolveFn && e.resolveFn(...o),
+                            i && setTimeout( () => {
+                                this.dequeue()
+                            }
+                            , 0)
+                        }
+                        ),
+                        i)
+                            break
+                    } else
+                        window.PokiSDK[o](...t);
+                else
+                    console.error(`%cPOKI:%c cannot execute ${o}`, "font-weight: bold", "")
+            }
+        }
+        init = (e={}) => new Promise( (o, t) => {
+            this.enqueue("init", [e], o, t)
+        }
+        );
+        rewardedBreak = () => new Promise(e => {
+            e(!1)
+        }
+        );
+        commercialBreak = e => new Promise( (o, t) => {
+            this.enqueue("commercialBreak", [e], o, t)
+        }
+        );
+        displayAd = (e, o, t, i) => {
+            i && i(!0),
+            t && t()
+        }
+        ;
+        withArguments = e => (...o) => {
+            this.enqueue(e, o)
+        }
+        ;
+        withPromise = e => () => new Promise( (o, t) => {
+            this.enqueue(e, [], o, t)
+        }
+        );
+        handleAutoResolvePromise = () => new Promise(e => {
+            e()
+        }
+        );
+        throwNotLoaded = () => {
+            console.debug("PokiSDK is not loaded yet. Not all methods are available.")
+        }
+        ;
+        doNothing = () => {}
+    }
+    ;
+    if (window.PokiSDK = {
+        init: g.init,
+        initWithVideoHB: g.init,
+        commercialBreak: g.commercialBreak,
+        rewardedBreak: g.rewardedBreak,
+        displayAd: g.displayAd,
+        destroyAd: g.doNothing,
+        getLeaderboard: g.handleAutoResolvePromise,
+        shareableURL: () => new Promise( (e, o) => {
+            o()
+        }
+        ),
+        getURLParam: e => n(`gd${e}`) || n(e) || "",
+        getLanguage: () => navigator.language.toLowerCase().split("-")[0],
+        getIsoLanguage: () => n("iso_lang") || void 0,
+        isAdBlocked: () => {}
+        ,
+        getUser: g.withPromise("getUser"),
+        getToken: g.withPromise("getToken"),
+        login: g.withPromise("login"),
+        generateScreenshot: g.withPromise("generateScreenshot")
+    },
+    ["captureError", "customEvent", "gameInteractive", "gameLoadingFinished", "gameLoadingProgress", "gameLoadingStart", "gameplayStart", "gameplayStop", "happyTime", "logError", "muteAd", "roundEnd", "roundStart", "sendHighscore", "setDebug", "setDebugTouchOverlayController", "setLogging", "setPlayerAge", "setPlaytestCanvas", "enableEventTracking", "openExternalLink", "playtestSetCanvas", "playtestCaptureHtmlOnce", "playtestCaptureHtmlForce", "playtestCaptureHtmlOn", "playtestCaptureHtmlOff", "movePill", "showLeaderboard"].forEach(e => {
+        window.PokiSDK[e] = g.withArguments(e)
+    }
+    ),
+    !r && !a)
+        try {
+            let e = localStorage.getItem("poki_events_user_id");
+            e || (e = crypto.randomUUID(),
+            "GB" !== n("country") && localStorage.setItem("poki_events_user_id", e));
+            const o = crypto.randomUUID()
+              , t = n("game_id")
+              , a = n("game_version_id")
+              , r = "1" === localStorage.getItem("poki_pbf");
+            let s = 1;
+            window.PokiSDK.measure = (c, l, g, p) => {
+                c = `${c}`,
+                l = void 0 === l ? "" : `${l}`,
+                g = void 0 === g ? "" : `${g}`;
+                const u = void 0 === p ? "" : `, ${JSON.stringify(p)}`;
+                if (console.info(`%cPOKI:%c PokiSDK.measure(${c}, ${l}, ${g}${u})`, "background-color: green; border-radius: 3px; color: white; padding: 1px 5px", ""),
+                window.pokiMeasureBuildin = !0,
+                window.parent.postMessage({
+                    type: "pokiMessageEvent",
+                    content: {
+                        event: "pokiTrackingMeasure",
+                        data: {
+                            category: c,
+                            action: l,
+                            label: g
+                        }
+                    }
+                }, "*"),
+                t && a) {
+                    const p = {
+                        category: c,
+                        action: l,
+                        label: g,
+                        p4d_game_id: t,
+                        p4d_version_id: a,
+                        time_on_page: Math.floor(performance.now()),
+                        user_id: e,
+                        user_new: !r,
+                        gameplay_id: o,
+                        experiment: n("experiment") || void 0,
+                        event_order: s++,
+                        device_category: i()
+                    };
+                    d ? window.parent.postMessage({
+                        type: "pokiMessageSendGameEvent",
+                        content: {
+                            payload: p
+                        }
+                    }, "*") : fetch("https://t.poki.io/game-event", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "text/plain"
+                        },
+                        body: JSON.stringify(p),
+                        mode: "no-cors",
+                        keepalive: !0,
+                        credentials: "omit"
+                    }).catch(e => {
+                        console.warn("%cPOKI:%c failed to measure", "font-weight: bold", "", e)
+                    }
+                    )
+                }
+                window.dispatchEvent(new CustomEvent("pokiMeasure",{
+                    detail: {
+                        category: c,
+                        action: l,
+                        label: g,
+                        data: p
+                    }
+                }))
+            }
+            ,
+            window.PokiSDK.measure("game", "loading", "start"),
+            window.pokiMeasureBuildin = !1
+        } catch (e) {
+            console.error(e),
+            window.PokiSDK.measure = () => {}
+        }
+    if (!c) {
+        const e = ( () => {
+            const e = window.pokiSDKVersion || n("ab") || "f50ff22df08006dbecfd5bf90aad960965a2b93f";
+            let o = `poki-sdk-core-${e}.js`;
+            return r && (o = `poki-sdk-playground-${e}.js`),
+            s && (o = `poki-sdk-hoist-${e}.js`),
+            l && r && (o = `poki-sdk-app-${e}.js`),
+            `https://game-cdn.poki.com/scripts/${e}/${o}`
+        }
+        )()
+          , o = document.createElement("script");
+        o.setAttribute("src", e),
+        o.setAttribute("type", "text/javascript"),
+        o.setAttribute("crossOrigin", "anonymous"),
+        o.onload = () => g.dequeue(),
+        document.head.appendChild(o)
+    }
+}
+)();
